@@ -1,0 +1,18 @@
+#Задача 5
+import numpy as np 
+m, n, k = map(int, input().split())
+field = np.zeros((m, n))
+for i in range(k):
+  x, y = map(int, input().split())
+  field[y][x] = -1
+field[0][0] = 1
+for i in range(m):
+  for j in range(n):
+    if field[i][j] != 0 and field[i][j] != -1:
+      if i < m - 1:
+        if field[i+1][j] != -1:
+          field[i+1][j] += field[i][j]
+      if j < n - 1:
+        if field[i][j+1] != -1:
+          field[i][j+1] += field[i][j]
+print(field[m-1][n-1])
