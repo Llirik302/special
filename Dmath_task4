@@ -1,0 +1,130 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+const static int NUN_NODE = -1;
+
+
+pair<int, int> input(pair<int, int> &chessCoordinate);
+
+void manageBuildTheShortestWay(vector<vector<int>> &chessField, pair<int, int> presentCoordinates,
+	pair<int, int> endingCoordinates, int countNodes);
+
+void buildTheShortestWay(vector<vector<int>> &chessField, pair<int, int> presentCoordinates,
+	pair<int, int> endingCoordinates, queue<pair<pair<int, int>, int>> &coordinatesAndCounts, int countNodes);
+
+bool areKnightInBound(pair<int, int> presentCoordinates);
+bool haveWeShorterWay(vector<vector<int>> chessField, pair<int, int> presentCoordinates, int countNodes);
+bool areWeInTheEnd(pair<int, int> presentCoordinates, pair<int, int> endingCoordinates);
+
+void updateChessField(vector<vector<int>> &chessField, pair<int, int> presentCoordinates, int countNodes);
+void makeNextStep(vector<vector<int>> &chessField, pair<int, int> presentCoordinates,
+	pair<int, int> endingCoordinates, queue<pair<pair<int, int>, int>> &coordinatesAndCounts, int countNodes);
+
+
+pair<int, int> input(pair<int, int> &chessCoordinate) {
+	char firstCoordinateInChar;
+	int secondCoordinateInInt;
+	cin >> firstCoordinateInChar >> secondCoordinateInInt;
+	chessCoordinate.first = (int)firstCoordinateInChar - (int)'a';
+	chessCoordinate.second = secondCoordinateInInt - 1;
+
+	return chessCoordinate;
+}
+
+void manageBuildTheShortestWay(vector<vector<int>> &chessField, pair<int, int> presentCoordinates,
+	pair<int, int> endingCoordinates, int countNodes = 0) {
+	queue<pair<pair<int, int>, int>> coordinatesAndCounts;
+	bool finish = false;
+	coordinatesAndCounts.push({ presentCoordinates, countNodes });
+
+	while (!coordinatesAndCounts.empty() && !finish) {
+		buildTheShortestWay(chessField, coordinatesAndCounts.front().first, endingCoordinates, coordinatesAndCounts, coordinatesAndCounts.front().second);
+		finish = areWeInTheEnd(coordinatesAndCounts.front().first, endingCoordinates);
+		coordinatesAndCounts.pop();
+	}
+}
+
+void buildTheShortestWay(vector<vector<int>> &chessField, pair<int, int> presentCoordinates,
+	pair<int, int> endingCoordinates, queue<pair<pair<int, int>, int>> &coordinatesAndCounts, int countNodes = 0) {
+	if (!areKnightInBound(presentCoordinates)) return;
+	if (haveWeShorterWay(chessField, presentCoordinates, countNodes)) return;
+
+	updateChessField(chessField, presentCoordinates, countNodes);
+
+	makeNextStep(chessField, presentCoordinates, endingCoordinates, coordinatesAndCounts, countNodes);
+
+	return;
+}
+
+bool areKnightInBound(pair<int, int> presentCoordinates) {
+	if (presentCoordinates.first >= 0 && presentCoordinates.first < 26) {
+		if (presentCoordinates.second >= 0 && presentCoordinates.second < 26) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool haveWeShorterWay(vector<vector<int>> chessField, pair<int, int> presentCoordinates, int countNodes) {
+	int y = presentCoordinates.first;
+	int x = presentCoordinates.second;
+
+	if (chessField[y][x] != NUN_NODE) {
+		return true;
+	}
+
+	return false;
+}
+
+bool areWeInTheEnd(pair<int, int> presentCoordinates, pair<int, int> endingCoordinates) {
+	if (presentCoordinates.first == endingCoordinates.first && presentCoordinates.second == endingCoordinates.second) {
+		return true;
+	}
+
+	return false;
+}
+
+void updateChessField(vector<vector<int>> &chessField, pair<int, int> presentCoordinates, int countNodes) {
+	int y = presentCoordinates.first;
+	int x = presentCoordinates.second;
+
+	chessField[y][x] = countNodes;
+
+	return;
+}
+
+void makeNextStep(vector<vector<int>> &chessField, pair<int, int> presentCoordinates,
+	pair<int, int> endingCoordinates, queue<pair<pair<int, int>, int>> &coordinatesAndCounts, int countNodes) {
+	int y = presentCoordinates.first;
+	int x = presentCoordinates.second;
+	int newCountNodes = countNodes + 1;
+
+	coordinatesAndCounts.push({ { y - 1, x - 2 }, newCountNodes });
+	coordinatesAndCounts.push({ { y + 1, x - 2 }, newCountNodes });
+	coordinatesAndCounts.push({ { y + 2, x - 1 }, newCountNodes });
+	coordinatesAndCounts.push({ { y + 2, x + 1 }, newCountNodes });
+	coordinatesAndCounts.push({ { y + 1, x + 2 }, newCountNodes });
+	coordinatesAndCounts.push({ { y - 1, x + 2 }, newCountNodes });
+	coordinatesAndCounts.push({ { y - 2, x + 1 }, newCountNodes });
+	coordinatesAndCounts.push({ { y - 2, x - 1 }, newCountNodes });
+
+	return;
+}
+
+
+int main() {
+	vector<vector<int>> chessField(26, vector<int>(26, NUN_NODE));
+	pair<int, int> startringCoordinates;
+	pair<int, int> endingCoordinates;
+
+	input(startringCoordinates);
+	input(endingCoordinates);
+	manageBuildTheShortestWay(chessField, startringCoordinates, endingCoordinates);
+
+	cout << chessField[endingCoordinates.first][endingCoordinates.second] << endl;
+	return 0;
+}
