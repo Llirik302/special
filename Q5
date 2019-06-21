@@ -1,0 +1,149 @@
+#include "pch.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#include <windows.h>
+
+double time()
+{
+	FILETIME ft;
+	GetSystemTimeAsFileTime(&ft);
+	return ft.dwLowDateTime / 1.0e7 + ft.dwHighDateTime*(4294967296.0 / 1.0e7) - 11644473600;
+}
+
+int seq[] = {103, 46, 20, 9, 4, 1};
+
+int* shellsort(int *arr, int n)
+{
+	size_t len = n * sizeof(int);
+	int *a = (int *)malloc(len);
+	memcpy(a, arr, len);
+
+	for (int ind = 0; ind < sizeof(seq) / sizeof(int); ind++) {
+		int g = seq[ind];
+		if (g >= n) continue;
+
+		for (int i = g; i < n; i++)
+		{
+			int tmp = a[i];
+			int j;
+			for (j = i; j >= g; j -= g)
+			{
+				if (tmp < a[j - g])
+					a[j] = a[j - g];
+				else
+					break;
+			}
+			a[j] = tmp;
+		}
+	}
+
+	return a;
+}
+
+
+int* quick_sort(int *arr, size_t len)
+{
+	//Указатели в начало и в конец массива
+	int i = 0;
+	int j = len - 1;
+
+	//Центральный элемент массива
+	int mid = arr[len / 2];
+
+	//Делим массив
+	do {
+		//Пробегаем элементы, ищем те, которые нужно перекинуть в другую часть
+		//В левой части массива пропускаем(оставляем на месте) элементы, которые меньше центрального
+		while (arr[i] < mid) {
+			i++;
+		}
+		//В правой части пропускаем элементы, которые больше центрального
+		while (arr[j] > mid) {
+			j--;
+		}
+
+		if (i <= j) {
+			int tmp = arr[i];
+			arr[i] = arr[j];
+			arr[j] = tmp;
+
+			i++;
+			j--;
+		}
+	} while (i <= j);
+
+
+	//Рекурсивные вызовы, если осталось, что сортировать
+	if (j > 0) {
+		quick_sort(arr, j + 1);
+	}
+	if (i < len) {
+		quick_sort(&arr[i], len - i);
+	}
+	return arr;
+}
+
+int* read_file(char *address, int* len) {
+	FILE* f;
+	fopen_s(&f, address, "r");
+	if (f == 0) return 0;
+
+	fscanf_s(f, "%d", len);
+
+	int *arr = (int*)malloc(*len * sizeof(int));
+	for (int i = 0; i < *len; i++) 
+		fscanf_s(f, "%d", &arr[i]);
+	fclose(f);
+	return arr;
+}
+
+int write_to_file(char *address, int* arr, int len) {
+	FILE* f;
+	fopen_s(&f, address, "w");
+	if (f == 0) return 0;
+
+	for (int i = 0; i < len; i++) 
+		fprintf(f, "%d ", arr[i]);
+	fclose(f);
+	return 1;
+}
+
+int main()
+{
+	char file_in_path[] = "in.txt";
+	char file_out_path[] = "out.txt";
+
+	int len;
+	int* arr = read_file(file_in_path, &len);
+	if (arr == 0)
+	{
+		printf("\nCouldn't read file. Closing...");
+		return 0;
+	}
+
+	printf("\nArray from file: \n");
+	for (int i = 0; i < len; i++) 
+		printf("%d ", arr[i]);
+	printf("\n");
+
+	double t = time();
+	int *sorted = shellsort(arr, len);
+	t = time() - t;
+
+	printf("\nSorted array: \n");
+	for (int i = 0; i < len; i++) 
+		printf("%d ", sorted[i]);
+	printf("\n");
+
+	printf("\nWrite attempt: %d", write_to_file(file_out_path, sorted, len));
+	printf("\n");
+
+	free(arr);
+	free(sorted);
+
+	printf("\nTime: %3.30f\n", t);
+	return 0;
+}
