@@ -1,0 +1,104 @@
+#include "pch.h"
+#include <fstream>
+#include <iostream>
+#include <queue>
+#include <limits.h> 
+#include <string.h>
+
+using namespace std;
+
+bool bfs(int **Matrix, int s, int t, int parent[], int N)
+{
+	queue <int> q;
+	q.push(s);
+
+	bool *visited = new bool[N];
+	memset(visited, 0, sizeof(visited));
+
+	visited[s] = 1;
+	parent[s] = -1;
+
+	while (!q.empty()) {
+		int v = q.front();
+		q.pop();
+
+		for (int p = 0; p < N; p++) {
+			if (!visited[p] && Matrix[v][p] > 0) {
+				q.push(p);
+				parent[p] = v;
+				visited[p] = 1;
+			}
+		}
+	}
+
+	return(visited[t] == 1);
+}
+
+
+int main()
+{
+	ifstream f;
+	f.open("test_for.txt", ios::in);
+	int N;
+
+	f >> N;
+	cout << "N: " << N << endl;
+
+	int **matrix = new int*[N];
+	for (int i = 0; i < N; ++i) {
+		matrix[i] = new int[N];
+	}
+
+	for (int i = 0; i < N; ++i)
+		for (int j = 0; j < N; ++j)
+			f >> matrix[i][j];
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+			cout << matrix[i][j] << " ";
+		cout << endl;
+	}
+	f.close();
+
+	int u, v;
+	int *parent = new int[N];
+	int **resg = new int*[N];
+
+	for (int i = 0; i < N; ++i) {
+		resg[i] = new int[N];
+	}
+	for (u = 0; u < N; u++)
+		for (v = 0; v < N; v++)
+			resg[u][v] = matrix[u][v];
+	int max_flow = 0;
+	while (bfs(resg, 0, 1, parent, N))
+	{
+		int path = 0;
+		for (v = 1; v != 0; v = parent[v])
+		{
+			u = parent[v];
+			if (path == 0 || path > resg[u][v])
+				path = resg[u][v];
+		}
+		for (v = 1; v != 0; v = parent[v])
+		{
+			u = parent[v];
+			resg[u][v] -= path;
+			resg[v][u] += path;
+		}
+		max_flow += path;
+	}
+
+	cout << "Max flow is " << max_flow << endl;
+
+	delete[] parent;
+	for (int i = 0; i < N; i++)
+		delete[] resg[i];
+	delete[] resg;
+	for (int i = 0; i < N; i++) 
+		delete[] matrix[i];
+	delete[] matrix;
+
+	return 0;
+}
