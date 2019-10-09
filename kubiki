@@ -1,0 +1,131 @@
+#include <iostream> 
+#include <fstream>
+#include <limits.h> 
+#include <string.h> 
+#include <queue> 
+using namespace std;
+
+
+bool bfs(int** rGraph, int s, int t, int* parent, const int& N)
+{
+	bool* visited = new bool[N];
+	memset(visited, 0, N);
+
+	queue <int> q;
+	q.push(s);
+	visited[s] = true;
+	parent[s] = -1;
+
+	while (!q.empty())
+	{
+		int u = q.front();
+		q.pop();
+
+		for (int v = 0; v < N; v++)
+		{
+			if (visited[v] == false && rGraph[u][v] > 0)
+			{
+				q.push(v);
+				parent[v] = u;
+				visited[v] = true;
+			}
+		}
+	}
+
+	return (visited[t] == true);
+	delete[] visited;
+}
+
+int FordIsGood(int** Matrix, int s, int t)
+{
+	int u, v;
+	int N = t + 1;
+
+	int** rGraph = new int* [N];
+	for (int i = 0; i < N; ++i)
+		rGraph[i] = new int[N];
+
+	for (u = 0; u < N; u++)
+		for (v = 0; v < N; v++)
+		rGraph[u][v] = Matrix[u][v];
+	
+	int* parent = new int[N];
+	
+	int max_flow = 0;
+	while (bfs(rGraph, s, t, parent, N))
+	{
+		int path_flow = INT_MAX;
+		for (v = t; v != s; v = parent[v])
+		{
+			u = parent[v];
+			path_flow = min(path_flow, rGraph[u][v]);
+		}
+	
+		for (v = t; v != s; v = parent[v])
+		{
+			u = parent[v];
+			rGraph[u][v] -= path_flow;
+			rGraph[v][u] += path_flow;
+		}
+	
+		max_flow += path_flow;
+	}
+	delete[] parent;
+	
+	return max_flow;
+}
+
+int main()
+{
+	ifstream f;
+	f.open("test7.txt", ios::in);
+	int N = 0;
+	f >> N;
+	string w;
+	f >> w;
+	char** cube = new char* [N];
+	for (int i = 0; i < N; ++i)
+		cube[i] = new char[6];
+	for (int i = 0; i < N; ++i) 
+		for (int j = 0; j < 6; ++j) 
+			f >> cube[i][j];
+
+	f.close();
+	int Len = w.length();
+	int D = N + 2 + Len;
+	int** matrix = new int* [D];
+	for (int i = 0; i < D; ++i)
+		matrix[i] = new int[D];
+
+	for (int i = 0; i < D; ++i)
+		for(int j = 0; j < D; ++j)
+			matrix[i][j] = 0;
+
+	for (int i = 1; i <= Len; ++i)
+		matrix[0][i] = 1;
+
+	for (int i = 0; i < Len; ++i) 
+		for (int j = 0; j < N; ++j) 
+			for (int k = 0; k < 6; ++k) 
+				if (w[i] == cube[j][k])
+					matrix[i + 1][j + Len + 1] = 1;
+
+
+	for (int i = D - N - 1; i < D - 1; ++i)
+		matrix[i][D - 1] = 1;
+
+	int s = 0, t = D - 1;
+	if (Len == FordIsGood(matrix, s, t))
+		cout << "YES" << endl;
+	else
+		cout << "NO" << endl;
+
+
+	for (int i = 0; i < N; ++i)
+		delete[] cube[i];
+	delete[] cube;
+
+	for (int i = 0; i < D; ++i)
+		delete[] matrix[i];
+	delete[] matrix;
+}
