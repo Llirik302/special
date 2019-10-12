@@ -1,0 +1,187 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+class State {
+	string name;
+	string capital;
+	string language;
+	int population;
+	int area;
+public:
+	State* next;
+	State(const string name = "0", const string capital = "0", 
+		const string language = "0", const int& population = 0, 
+		const int& area = 0, State* next = NULL)
+	{
+		this->name = name;
+		this->capital = capital;
+		this->language = language;
+		this->population = population;
+		this->area = area;
+		this->next = next;
+	}
+	string getName() { return this->name; }
+	string getCapital() { return this->capital; }
+	string getLanguage() { return this->language; }
+	int getPopulos() { return this->population; }
+	int getArea() { return this->area; }
+	void setName(const string name) { this->name = name; }
+	void setCapital(const string capital) { this->capital = capital; }
+	void setLanguage(const string language) { this->language = language; }
+	void setPopulation(const int& population) { this->population = population; }
+	void setArea(const int& area) { this->area = area; }
+	void EstablishState(const string name, const string capital, const string language, const int& population, const int& area)
+	{
+		this->name = name;
+		this->capital = capital;
+		this->language = language;
+		this->population = population;
+		this->area = area;
+	}
+	void print();
+};
+
+void State::print() {
+	cout << name << endl;
+	cout << capital << endl;
+	cout << language << endl;
+	cout << population << " " << area << endl;
+}
+
+class List {
+	State* First;
+public:
+	List() {First=NULL;}
+	~List();
+	State* getLast();
+	State* find(int n);
+	void add(State* S); //добавление в конец
+	void push(State* S) { S->next = this->First; this->First = S;} //добавление в начало
+	void insert(State* S, int n);
+	void remove(int n);
+	List* filterPopulos(List* L, int crowd,const char* s = "0");
+	State* searchName(const char* name);
+};
+
+List::~List() {
+	while (First != NULL) {
+		State* tmp = First->next;
+		delete First;
+		First = tmp;
+	}
+}
+
+State* List::getLast() {
+	State* S = this->First;
+	if (S == NULL)
+		return NULL;
+	while (S->next) {
+		S = S->next;
+	}
+	return S;
+}
+
+State* List::find(int n) {
+	State* S = this->First;
+	int cntr = 0;
+	while (cntr < n && this->First) {
+		S = S->next;
+		++cntr;
+	}
+	return S;
+}
+
+void List::add(State* S) {
+	S->next = NULL;
+	State* last = this->getLast();
+
+	if (last == NULL) {
+		this->First = S;
+		return;
+	}
+	last->next = S;
+}
+
+void List::insert(State* S, int n) {
+	State* tmp = this->find(n);
+	if (tmp == NULL) return;
+	S->next = tmp->next;
+	tmp->next = S;
+}
+
+void List::remove(int n) {
+	if (n == 0) {
+		if (this->First == NULL) return;
+		else {
+			State* S = this->First;
+			this->First = this->First->next;
+			delete S;
+			return;
+		}
+	}
+}
+
+List* List::filterPopulos(List* L, int crowd, const char* s = "0") {
+	List* L1;
+	State* S = L->First;
+	while (S) {
+		if (s == "<") {
+			if (S->getPopulos() < crowd)
+			{
+				State* tmp;
+				tmp->EstablishState(S->getName(), S->getCapital(), S->getLanguage(),
+					S->getPopulos(), S->getArea());
+				L1->push(tmp);
+			}
+			S = S->next;
+		}
+		else if (s == ">") {
+			if (S->getPopulos() > crowd)
+			{
+				State* tmp;
+				tmp->EstablishState(S->getName(), S->getCapital(), S->getLanguage(),
+					S->getPopulos(), S->getArea());
+				L1->push(tmp);
+			}
+			S = S->next;
+		}
+		else if (s == "=") {
+			if (S->getPopulos() == crowd)
+			{
+				State* tmp;
+				tmp->EstablishState(S->getName(), S->getCapital(), S->getLanguage(),
+					S->getPopulos(), S->getArea());
+				L1->push(tmp);
+			}
+			S = S->next;
+		}
+		else {
+			cout << "\nWrong comparison symbol" << endl;
+			return;
+		}
+		return L1;
+	}
+}
+
+State* List::searchName(const char* name) {
+	State* S = this->First;
+	bool c = 1;
+	while (S && c) {
+		char str1[100] = {};
+		strcpy_s(str1, sizeof(str1), S->getName());
+		c = strcmp(str1, name);
+		if (!c)
+			return S;
+		S = S->next;
+	}
+	return S;
+}
+
+int main()
+{
+	/*State O("BestKorea", "BestSeoul", "korean", 1, 100);
+	O.print();
+	cout << "area: " << O.getArea() << endl;*/
+	List L;
+}
